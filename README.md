@@ -50,6 +50,13 @@ This project is for practice and documentation purposes. The EC2 and IAM configu
 - AWS SES: Email alerts with HTML templates
 - Docker Compose: One-command deployment
 
+## Prerequisites
+
+- Docker Engine 20.10+
+- Docker Compose V2
+- AWS SES verified domain/email (for email alerts)
+- Slack Incoming Webhook URL (for Slack alerts)
+
 ## Quick Start
 
 ### 1. Clone and Configure
@@ -64,7 +71,7 @@ cp .env.example .env
 ### 2. Start the Stack
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 ### 3. Access Services
@@ -165,9 +172,11 @@ To monitor remote EC2 instances, install node_exporter on each:
 
 ```bash
 # Download and install
-wget https://github.com/prometheus/node_exporter/releases/download/v1.8.2/node_exporter-1.8.2.linux-amd64.tar.gz
-tar xvfz node_exporter-1.8.2.linux-amd64.tar.gz
-sudo mv node_exporter-1.8.2.linux-amd64/node_exporter /usr/local/bin/
+# Check latest version at https://github.com/prometheus/node_exporter/releases
+VERSION=1.8.2
+wget https://github.com/prometheus/node_exporter/releases/download/v${VERSION}/node_exporter-${VERSION}.linux-amd64.tar.gz
+tar xvfz node_exporter-${VERSION}.linux-amd64.tar.gz
+sudo mv node_exporter-${VERSION}.linux-amd64/node_exporter /usr/local/bin/
 
 # Create systemd service
 sudo tee /etc/systemd/system/node_exporter.service > /dev/null <<EOF
@@ -201,7 +210,7 @@ Ensure the following ports are open in your AWS Security Groups:
 | 9093 | Alertmanager | Internal only |
 | 9100 | Node Exporter | Internal only |
 | 3000 | Grafana | As needed |
-| 587 | SMTP (outbound) | AWS SES endpoint |
+| 587 (outbound) | SMTP | AWS SES endpoint |
 
 ## Screenshots
 
@@ -229,6 +238,3 @@ Ensure the following ports are open in your AWS Security Groups:
 - [AWS SES](https://aws.amazon.com/ses/) - Email delivery
 - [Docker Compose](https://docs.docker.com/compose/) - Container orchestration
 
-## License
-
-MIT
