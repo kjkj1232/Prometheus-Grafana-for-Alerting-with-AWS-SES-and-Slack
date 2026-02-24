@@ -1,0 +1,32 @@
+groups:
+  - name: instance_alerts
+    rules:
+      # Instance down (node_exporter unreachable)
+      - alert: InstanceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Instance {{ $labels.instance }} is down"
+          description: "{{ $labels.instance }} (job: {{ $labels.job }}) has been unreachable for more than 1 minute."
+
+      # Instance reboot detected
+      - alert: InstanceReboot
+        expr: (time() - node_boot_time_seconds) < 300
+        for: 0m
+        labels:
+          severity: info
+        annotations:
+          summary: "Instance {{ $labels.instance }} was recently rebooted"
+          description: "Instance {{ $labels.instance }} was rebooted {{ $value | printf \"%.0f\" }} seconds ago."
+
+      # System clock skew
+      - alert: ClockSkewDetected
+        expr: abs(node_timex_offset_seconds) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Clock skew detected on {{ $labels.instance }}"
+          description: "System clock is off by {{ $value | printf \"%.3f\" }} seconds. NTP may not be syncing properly."

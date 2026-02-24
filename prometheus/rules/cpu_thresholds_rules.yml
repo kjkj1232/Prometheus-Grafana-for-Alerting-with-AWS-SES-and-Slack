@@ -1,0 +1,32 @@
+groups:
+  - name: cpu_alerts
+    rules:
+      # CPU usage > 80% for 5 minutes
+      - alert: HighCpuUsage
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage on {{ $labels.instance }}"
+          description: "CPU usage is above 80% (current: {{ $value | printf \"%.1f\" }}%) on instance {{ $labels.instance }} for more than 5 minutes."
+
+      # CPU usage > 95% for 2 minutes (critical)
+      - alert: CriticalCpuUsage
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 95
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical CPU usage on {{ $labels.instance }}"
+          description: "CPU usage is above 95% (current: {{ $value | printf \"%.1f\" }}%) on instance {{ $labels.instance }}. Immediate action required."
+
+      # High CPU iowait (disk bottleneck indicator)
+      - alert: HighCpuIoWait
+        expr: avg by(instance) (rate(node_cpu_seconds_total{mode="iowait"}[5m])) * 100 > 20
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU I/O wait on {{ $labels.instance }}"
+          description: "CPU I/O wait is above 20% (current: {{ $value | printf \"%.1f\" }}%). This may indicate disk performance issues."

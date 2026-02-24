@@ -1,0 +1,42 @@
+groups:
+  - name: storage_alerts
+    rules:
+      # Disk usage > 80%
+      - alert: HighDiskUsage
+        expr: (1 - (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"})) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High disk usage on {{ $labels.instance }}"
+          description: "Disk usage on {{ $labels.mountpoint }} is above 80% (current: {{ $value | printf \"%.1f\" }}%)."
+
+      # Disk usage > 95% (critical)
+      - alert: CriticalDiskUsage
+        expr: (1 - (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"})) * 100 > 95
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical disk usage on {{ $labels.instance }}"
+          description: "Disk usage on {{ $labels.mountpoint }} is above 95% (current: {{ $value | printf \"%.1f\" }}%). Disk is almost full."
+
+      # Disk will fill in 24 hours (predictive)
+      - alert: DiskFillPrediction
+        expr: predict_linear(node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"}[6h], 24 * 3600) < 0
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Disk predicted to fill within 24h on {{ $labels.instance }}"
+          description: "Based on current trend, disk {{ $labels.mountpoint }} will run out of space within 24 hours."
+
+      # Filesystem read-only
+      - alert: FilesystemReadOnly
+        expr: node_filesystem_readonly{fstype!~"tmpfs|overlay"} == 1
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Filesystem is read-only on {{ $labels.instance }}"
+          description: "Filesystem {{ $labels.mountpoint }} has been mounted as read-only."

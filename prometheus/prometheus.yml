@@ -1,0 +1,48 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  scrape_timeout: 10s
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+
+# Rule files for alerting
+rule_files:
+  - "rules/cpu_thresholds_rules.yml"
+  - "rules/memory_thresholds_rules.yml"
+  - "rules/storage_thresholds_rules.yml"
+  - "rules/instance_shutdown_rules.yml"
+  - "rules/network_thresholds_rules.yml"
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # Node Exporter - local (docker-compose)
+  - job_name: "node_exporter_local"
+    scrape_interval: 5s
+    static_configs:
+      - targets: ["node_exporter:9100"]
+        labels:
+          environment: "local"
+
+  # Node Exporter - remote EC2 instances
+  # Uncomment and update with your EC2 private IPs
+  # - job_name: "node_exporter_ec2"
+  #   scrape_interval: 5s
+  #   static_configs:
+  #     - targets: ["<EC2_PRIVATE_IP_1>:9100", "<EC2_PRIVATE_IP_2>:9100"]
+  #       labels:
+  #         environment: "production"
+
+  # Alertmanager monitoring
+  - job_name: "alertmanager"
+    static_configs:
+      - targets: ["alertmanager:9093"]

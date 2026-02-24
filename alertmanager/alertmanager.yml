@@ -1,0 +1,81 @@
+global:
+  resolve_timeout: 5m
+  slack_api_url: "${SLACK_API_URL}"
+  smtp_smarthost: "${SMTP_SMARTHOST}"
+  smtp_from: "${SMTP_FROM}"
+  smtp_auth_username: "${SMTP_USERNAME}"
+  smtp_auth_password: "${SMTP_PASSWORD}"
+  smtp_require_tls: true
+
+templates:
+  - "/etc/alertmanager/templates/*.tmpl"
+
+# Inhibition rules - suppress lower severity when critical fires
+inhibit_rules:
+  - source_matchers:
+      - severity="critical"
+    target_matchers:
+      - severity="warning"
+    equal: ["instance"]
+
+route:
+  receiver: "slack-email"
+  group_by: ["alertname", "instance", "severity"]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+
+  # Route critical alerts immediately
+  routes:
+    - receiver: "slack-email-critical"
+      matchers:
+        - severity="critical"
+      group_wait: 10s
+      repeat_interval: 1h
+      continue: false
+
+    - receiver: "slack-only"
+      matchers:
+        - severity="info"
+      repeat_interval: 12h
+      continue: false
+
+receivers:
+  # Default: both Slack and Email
+  - name: "slack-email"
+    email_configs:
+      - to: "${SMTP_TO}"
+        send_resolved: true
+        headers:
+          Subject: "[WARNING] Prometheus Alert: {{ .GroupLabels.alertname }}"
+        html: '{{ template "email.html" . }}'
+    slack_configs:
+      - channel: "${SLACK_CHANNEL}"
+        send_resolved: true
+        title: '{{ template "slack.title" . }}'
+        text: '{{ template "slack.text" . }}'
+        color: '{{ if eq .Status "firing" }}{{ if eq .CommonLabels.severity "critical" }}danger{{ else }}warning{{ end }}{{ else }}good{{ end }}'
+
+  # Critical: both Slack and Email with urgency
+  - name: "slack-email-critical"
+    email_configs:
+      - to: "${SMTP_TO}"
+        send_resolved: true
+        headers:
+          Subject: "[CRITICAL] Prometheus Alert: {{ .GroupLabels.alertname }}"
+        html: '{{ template "email.html" . }}'
+    slack_configs:
+      - channel: "${SLACK_CHANNEL}"
+        send_resolved: true
+        title: '{{ template "slack.title" . }}'
+        text: '{{ template "slack.text" . }}'
+        color: 'danger'
+
+  # Info: Slack only
+  - name: "slack-only"
+    slack_configs:
+      - channel: "${SLACK_CHANNEL}"
+        send_resolved: true
+        title: '{{ template "slack.title" . }}'
+        text: '{{ template "slack.text" . }}'
+        color: '{{ if eq .Status "firing" }}warning{{ else }}good{{ end }}'

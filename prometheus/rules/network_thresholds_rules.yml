@@ -1,0 +1,32 @@
+groups:
+  - name: network_alerts
+    rules:
+      # High network receive traffic (> 100MB/s)
+      - alert: HighNetworkReceive
+        expr: rate(node_network_receive_bytes_total{device!~"lo|veth.*|docker.*|br-.*"}[5m]) / 1024 / 1024 > 100
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High network receive traffic on {{ $labels.instance }}"
+          description: "Network receive rate on {{ $labels.device }} is {{ $value | printf \"%.1f\" }} MB/s."
+
+      # High network transmit traffic (> 100MB/s)
+      - alert: HighNetworkTransmit
+        expr: rate(node_network_transmit_bytes_total{device!~"lo|veth.*|docker.*|br-.*"}[5m]) / 1024 / 1024 > 100
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High network transmit traffic on {{ $labels.instance }}"
+          description: "Network transmit rate on {{ $labels.device }} is {{ $value | printf \"%.1f\" }} MB/s."
+
+      # Network interface down
+      - alert: NetworkInterfaceDown
+        expr: node_network_up{device!~"lo|veth.*|docker.*|br-.*"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Network interface {{ $labels.device }} is down on {{ $labels.instance }}"
+          description: "Network interface {{ $labels.device }} has been down for more than 2 minutes."

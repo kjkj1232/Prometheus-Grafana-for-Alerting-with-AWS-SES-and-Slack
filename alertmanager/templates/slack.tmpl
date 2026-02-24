@@ -1,0 +1,14 @@
+{{ define "slack.title" -}}
+[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .GroupLabels.SortedPairs.Values | join " " }}
+{{- end }}
+
+{{ define "slack.text" -}}
+{{ range .Alerts }}
+*Alert:* {{ .Labels.alertname }} - `{{ .Labels.severity }}`
+*Instance:* {{ .Labels.instance }}
+*Description:* {{ .Annotations.description }}
+*Started:* {{ .StartsAt.Format "2006-01-02 15:04:05 UTC" }}
+{{ if .EndsAt.IsZero }}{{ else }}*Resolved:* {{ .EndsAt.Format "2006-01-02 15:04:05 UTC" }}{{ end }}
+---
+{{ end }}
+{{- end }}

@@ -1,0 +1,42 @@
+{{ define "email.html" }}
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+    .container { max-width: 600px; margin: 0 auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .header { padding: 20px; color: #fff; text-align: center; }
+    .header.firing { background: #e74c3c; }
+    .header.resolved { background: #27ae60; }
+    .alert { padding: 15px 20px; border-bottom: 1px solid #eee; }
+    .alert:last-child { border-bottom: none; }
+    .label { font-weight: bold; color: #333; }
+    .value { color: #666; }
+    .severity-critical { color: #e74c3c; font-weight: bold; }
+    .severity-warning { color: #f39c12; font-weight: bold; }
+    .severity-info { color: #3498db; }
+    .footer { padding: 15px 20px; background: #f9f9f9; text-align: center; font-size: 12px; color: #999; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header {{ if eq .Status "firing" }}firing{{ else }}resolved{{ end }}">
+      <h2>{{ if eq .Status "firing" }}🔥 ALERT FIRING{{ else }}✅ ALERT RESOLVED{{ end }}</h2>
+      <p>{{ .Alerts | len }} alert(s)</p>
+    </div>
+    {{ range .Alerts }}
+    <div class="alert">
+      <p><span class="label">Alert:</span> <span class="value">{{ .Labels.alertname }}</span></p>
+      <p><span class="label">Severity:</span> <span class="severity-{{ .Labels.severity }}">{{ .Labels.severity | toUpper }}</span></p>
+      <p><span class="label">Instance:</span> <span class="value">{{ .Labels.instance }}</span></p>
+      <p><span class="label">Description:</span> <span class="value">{{ .Annotations.description }}</span></p>
+      <p><span class="label">Started:</span> <span class="value">{{ .StartsAt.Format "2006-01-02 15:04:05 UTC" }}</span></p>
+    </div>
+    {{ end }}
+    <div class="footer">
+      Prometheus Alertmanager | Powered by Prometheus &amp; Grafana
+    </div>
+  </div>
+</body>
+</html>
+{{ end }}
