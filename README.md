@@ -97,5 +97,6 @@ Slack Alert
 
 # TO DO LIST
 * Architecture diagram
-* VPC Setting and ALB Optimization
+* VPC and ALB Setting Optimization
 * Prometheus Rules Alert Optimization
+* Upload files to this repository
