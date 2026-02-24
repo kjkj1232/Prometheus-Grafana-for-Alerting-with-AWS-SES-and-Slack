@@ -88,7 +88,7 @@ AWS EC2
 Security Groups
 ![image](https://github.com/kjkj1232/Prometheus-Grafana-and-Alerting-with-AWS-SES-with-Slack/blob/main/Security%20Groups.png)
 
-prometheus Alerts
+prometheus Alerts dashboard
 ![image](https://github.com/kjkj1232/Prometheus-Grafana-and-Alerting-with-AWS-SES-with-Slack/blob/main/prometheus.png)
 
 Slack Alert 
